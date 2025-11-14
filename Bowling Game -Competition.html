@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bowling Championship</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .mode-select {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .mode-select h2 {
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            margin: 15px;
+            padding: 20px 50px;
+            font-size: 1.3em;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6);
+        }
+
+        .championship-info {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .level-info {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+
+        .wins-info {
+            font-size: 1.2em;
+        }
+
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .player-score {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .player-score.human {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .player-score.active {
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .player-score.winner {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+
+        .player-name {
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .player-name .trophy {
+            color: #FFD700;
+            margin-left: 5px;
+        }
+
+        .total-score {
+            font-size: 1.8em;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+
+        .frame-info {
+            font-size: 0.95em;
+            opacity: 0.8;
+        }
+
+        .ai-skill {
+            font-size: 0.85em;
+            color: #FFC107;
+            margin-top: 5px;
+        }
+
+        .bowling-lane {
+            background: linear-gradient(to top, #8B4513 0%, #A0522D 100%);
+            border-radius: 10px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pins-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            min-height: 150px;
+        }
+
+        .pins {
+            position: relative;
+            width: 200px;
+            height: 150px;
+        }
+
+        .pin {
+            position: absolute;
+            width: 30px;
+            height: 40px;
+            background: white;
+            border-radius: 15px 15px 5px 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .pin.knocked {
+            opacity: 0.3;
+            transform: rotate(90deg);
+        }
+
+        .pin:nth-child(1) { top: 0; left: 85px; }
+        .pin:nth-child(2) { top: 40px; left: 65px; }
+        .pin:nth-child(3) { top: 40px; left: 105px; }
+        .pin:nth-child(4) { top: 80px; left: 45px; }
+        .pin:nth-child(5) { top: 80px; left: 85px; }
+        .pin:nth-child(6) { top: 80px; left: 125px; }
+        .pin:nth-child(7) { top: 120px; left: 25px; }
+        .pin:nth-child(8) { top: 120px; left: 65px; }
+        .pin:nth-child(9) { top: 120px; left: 105px; }
+        .pin:nth-child(10) { top: 120px; left: 145px; }
+
+        .controls {
+            text-align: center;
+        }
+
+        .power-control {
+            margin-bottom: 20px;
+        }
+
+        .power-label {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .power-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .power-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #F44336);
+            width: 50%;
+            transition: width 0.1s;
+        }
+
+        button {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+            transition: all 0.3s;
+            margin: 10px;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.6);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-message {
+            text-align: center;
+            font-size: 1.3em;
+            margin-top: 15px;
+            min-height: 35px;
+            color: #00d4ff;
+        }
+
+        .trophy-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .trophy-icon {
+            font-size: 8em;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .trophy-text {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        .final-stats {
+            font-size: 1.3em;
+            margin: 20px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🎳 Bowling Championship</h1>
+        
+        <div id="mode-select" class="mode-select">
+            <h2>Select Game Mode</h2>
+            <button class="mode-btn" onclick="startMode('quick')">Quick Match (1 Player)</button>
+            <button class="mode-btn" onclick="startMode('2player')">2 Player Mode</button>
+            <button class="mode-btn" onclick="startMode('championship')">Championship Mode (5 Levels)</button>
+        </div>
+
+        <div id="championship-info" class="championship-info hidden">
+            <div class="level-info" id="level-text">Level 1 of 5</div>
+            <div class="wins-info" id="wins-text">Wins: 0 / 3</div>
+        </div>
+
+        <div class="scoreboard" id="scoreboard" style="display: none;"></div>
+
+        <div class="bowling-lane" id="game-area" style="display: none;">
+            <div class="pins-container">
+                <div class="pins" id="pins">
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                    <div class="pin"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="power-control" id="power-control">
+                    <label class="power-label">Power: <span id="power-value">50</span>%</label>
+                    <div class="power-bar">
+                        <div class="power-fill" id="power-fill"></div>
+                    </div>
+                </div>
+                <button id="bowl-btn">Bowl!</button>
+                <button id="reset-btn">New Game</button>
+            </div>
+        </div>
+
+        <div class="game-message" id="message"></div>
+
+        <div id="trophy-screen" class="trophy-screen hidden">
+            <div class="trophy-icon">🏆</div>
+            <div class="trophy-text">CHAMPION!</div>
+            <div class="final-stats" id="final-stats"></div>
+            <button class="mode-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const game = {
+            mode: null,
+            currentPlayer: 0,
+            numPlayers: 1,
+            players: [],
+            pinsStanding: 10,
+            power: 50,
+            gameOver: false,
+            roundOver: false,
+            championship: {
+                level: 1,
+                wins: 0,
+                losses: 0
+            },
+            aiDifficulties: ['Beginner', 'Amateur', 'Pro', 'Expert', 'Master']
+        };
+
+        const pins = document.querySelectorAll('.pin');
+        const bowlBtn = document.getElementById('bowl-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const powerFill = document.getElementById('power-fill');
+        const powerValue = document.getElementById('power-value');
+        const message = document.getElementById('message');
+        const powerControl = document.getElementById('power-control');
+
+        let powerInterval;
+
+        function startMode(mode) {
+            game.mode = mode;
+            document.getElementById('mode-select').style.display = 'none';
+            
+            if (mode === 'championship') {
+                document.getElementById('championship-info').classList.remove('hidden');
+                startChampionshipLevel(1);
+            } else if (mode === '2player') {
+                setupGame(2, false);
+            } else {
+                setupGame(1, false);
+            }
+        }
+
+        function startChampionshipLevel(level) {
+            game.championship.level = level;
+            document.getElementById('level-text').textContent = `Level ${level} of 5`;
+            document.getElementById('wins-text').textContent = `Wins: ${game.championship.wins} / 3`;
+            
+            const difficulty = game.aiDifficulties[level - 1];
+            setupGame(4, true, difficulty);
+        }
+
+        function setupGame(numPlayers, isChampionship = false, difficulty = 'Beginner') {
+            game.numPlayers = numPlayers;
+            game.currentPlayer = 0;
+            game.gameOver = false;
+            game.roundOver = false;
+            game.players = [];
+            
+            // Add human player
+            game.players.push({
+                name: 'You',
+                isAI: false,
+                score: 0,
+                frame: 1,
+                ball: 1,
+                frameScores: [],
+                pinsKnocked: []
+            });
+            
+            // Add AI players for championship
+            if (isChampionship) {
+                const aiNames = ['Striker', 'Thunder', 'Ace'];
+                for (let i = 0; i < 3; i++) {
+                    game.players.push({
+                        name: aiNames[i],
+                        isAI: true,
+                        difficulty: difficulty,
+                        score: 0,
+                        frame: 1,
+                        ball: 1,
+                        frameScores: [],
+                        pinsKnocked: []
+                    });
+                }
+            } else if (numPlayers === 2) {
+                game.players.push({
+                    name: 'Player 2',
+                    isAI: false,
+                    score: 0,
+                    frame: 1,
+                    ball: 1,
+                    frameScores: [],
+                    pinsKnocked: []
+                });
+            }
+            
+            document.getElementById('scoreboard').style.display = 'grid';
+            document.getElementById('game-area').style.display = 'block';
+            
+            setupScoreboard();
+            resetPins();
+            updateDisplay();
+            
+            startPowerMeter();
+            
+            if (game.players[0].isAI) {
+                performAITurn();
+            } else {
+                message.textContent = "Your turn!";
+            }
+        }
+
+        function setupScoreboard() {
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerHTML = '';
+            
+            game.players.forEach((player, i) => {
+                const isHuman = !player.isAI;
+                scoreboard.innerHTML += `
+                    <div class="player-score ${isHuman ? 'human' : ''} ${i === 0 ? 'active' : ''}" id="player${i}-score">
+                        <div class="player-name">${player.name}<span class="trophy" id="trophy${i}"></span></div>
+                        <div class="total-score" id="p${i}-total">0</div>
+                        <div class="frame-info">Frame: <span id="p${i}-frame">1</span> | Ball: <span id="p${i}-ball">1</span></div>
+                        ${player.isAI ? `<div class="ai-skill">${player.difficulty} AI</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        function startPowerMeter() {
+            let powerDirection = 1;
+            powerInterval = setInterval(() => {
+                game.power += powerDirection * 2;
+                if (game.power >= 100) {
+                    game.power = 100;
+                    powerDirection = -1;
+                } else if (game.power <= 0) {
+                    game.power = 0;
+                    powerDirection = 1;
+                }
+                powerFill.style.width = game.power + '%';
+                powerValue.textContent = game.power;
+            }, 50);
+        }
+
+        bowlBtn.addEventListener('click', () => {
+            if (!game.players[game.currentPlayer].isAI) {
+                bowl(game.power);
+            }
+        });
+        
+        resetBtn.addEventListener('click', () => location.reload());
+
+        function bowl(power) {
+            if (game.gameOver || game.roundOver) return;
+
+            bowlBtn.disabled = true;
+            const player = game.players[game.currentPlayer];
+            
+            // Calculate pins knocked based on power and AI difficulty
+            let accuracy;
+            if (player.isAI) {
+                const difficultyMap = {
+                    'Beginner': 0.5,
+                    'Amateur': 0.65,
+                    'Pro': 0.75,
+                    'Expert': 0.85,
+                    'Master': 0.92
+                };
+                const skillLevel = difficultyMap[player.difficulty] || 0.5;
+                accuracy = (power / 100) * skillLevel + Math.random() * (1 - skillLevel);
+            } else {
+                accuracy = (power / 100) * 0.8 + Math.random() * 0.2;
+            }
+            
+            let pinsKnocked = Math.floor(accuracy * game.pinsStanding);
+            pinsKnocked = Math.min(pinsKnocked, game.pinsStanding);
+
+            // Knock down pins with animation
+            const standingPins = Array.from(pins).filter((_, i) => 
+                !pins[i].classList.contains('knocked')
+            );
+            
+            for (let i = 0; i < pinsKnocked; i++) {
+                if (standingPins[i]) {
+                    setTimeout(() => {
+                        standingPins[i].classList.add('knocked');
+                    }, i * 100);
+                }
+            }
+
+            game.pinsStanding -= pinsKnocked;
+            player.pinsKnocked.push(pinsKnocked);
+
+            setTimeout(() => {
+                processScore(pinsKnocked);
+                bowlBtn.disabled = false;
+            }, 1000);
+        }
+
+        function processScore(pinsKnocked) {
+            const player = game.players[game.currentPlayer];
+            
+            if (player.frame <= 10) {
+                if (player.ball === 1) {
+                    if (pinsKnocked === 10) {
+                        // Strike
+                        player.frameScores.push({ type: 'strike', balls: [10] });
+                        message.textContent = player.isAI ? `${player.name} got a STRIKE! 🎯` : '🎯 STRIKE!';
+                        nextTurn();
+                    } else {
+                        player.ball = 2;
+                        updateDisplay();
+                        message.textContent = player.isAI ? `${player.name} knocked ${pinsKnocked} pins` : `${pinsKnocked} pins! Roll again.`;
+                        
+                        setTimeout(() => {
+                            if (player.isAI) {
+                                performAITurn();
+                            }
+                        }, 1500);
+                    }
+                } else {
+                    // Second ball
+                    const firstBall = player.pinsKnocked[player.pinsKnocked.length - 2];
+                    if (firstBall + pinsKnocked === 10) {
+                        // Spare
+                        player.frameScores.push({ type: 'spare', balls: [firstBall, pinsKnocked] });
+                        message.textContent = player.isAI ? `${player.name} got a SPARE! ✨` : '✨ SPARE!';
+                    } else {
+                        player.frameScores.push({ type: 'normal', balls: [firstBall, pinsKnocked] });
+                    }
+                    nextTurn();
+                }
+            }
+
+            calculateScore();
+            updateDisplay();
+        }
+
+        function calculateScore() {
+            game.players.forEach(player => {
+                let total = 0;
+                const frames = player.frameScores;
+                
+                for (let i = 0; i < frames.length && i < 10; i++) {
+                    const frame = frames[i];
+                    
+                    if (frame.type === 'strike') {
+                        total += 10;
+                        if (frames[i + 1]) {
+                            total += frames[i + 1].balls[0];
+                            if (frames[i + 1].type === 'strike' && frames[i + 2]) {
+                                total += frames[i + 2].balls[0];
+                            } else if (frames[i + 1].balls[1] !== undefined) {
+                                total += frames[i + 1].balls[1];
+                            }
+                        }
+                    } else if (frame.type === 'spare') {
+                        total += 10;
+                        if (frames[i + 1]) {
+                            total += frames[i + 1].balls[0];
+                        }
+                    } else {
+                        total += frame.balls.reduce((a, b) => a + b, 0);
+                    }
+                }
+                
+                player.score = total;
+            });
+        }
+
+        function nextTurn() {
+            const player = game.players[game.currentPlayer];
+            player.frame++;
+            player.ball = 1;
+
+            if (player.frame > 10) {
+                game.currentPlayer++;
+                if (game.currentPlayer >= game.numPlayers) {
+                    endRound();
+                    return;
+                }
+            }
+
+            resetPins();
+            updateDisplay();
+
+            setTimeout(() => {
+                if (game.players[game.currentPlayer].isAI) {
+                    performAITurn();
+                } else {
+                    message.textContent = "Your turn!";
+                }
+            }, 1000);
+        }
+
+        function performAITurn() {
+            const player = game.players[game.currentPlayer];
+            message.textContent = `${player.name} is bowling...`;
+            powerControl.style.display = 'none';
+            
+            setTimeout(() => {
+                const aiPower = 30 + Math.random() * 70;
+                bowl(aiPower);
+                powerControl.style.display = 'block';
+            }, 1500);
+        }
+
+        function resetPins() {
+            pins.forEach(pin => pin.classList.remove('knocked'));
+            game.pinsStanding = 10;
+        }
+
+        function updateDisplay() {
+            game.players.forEach((player, index) => {
+                document.getElementById(`p${index}-total`).textContent = player.score;
+                document.getElementById(`p${index}-frame`).textContent = Math.min(player.frame, 10);
+                document.getElementById(`p${index}-ball`).textContent = player.ball;
+
+                const scoreDiv = document.getElementById(`player${index}-score`);
+                if (index === game.currentPlayer && !game.roundOver) {
+                    scoreDiv.classList.add('active');
+                } else {
+                    scoreDiv.classList.remove('active');
+                }
+            });
+        }
+
+        function endRound() {
+            game.roundOver = true;
+            bowlBtn.disabled = true;
+            
+            // Sort players by score
+            const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
+            const humanPlayer = game.players[0];
+            const humanRank = sortedPlayers.indexOf(humanPlayer) + 1;
+            
+            // Mark winner
+            const winner = sortedPlayers[0];
+            const winnerIndex = game.players.indexOf(winner);
+            document.getElementById(`player${winnerIndex}-score`).classList.add('winner');
+            document.getElementById(`trophy${winnerIndex}`).textContent = '🏆';
+            
+            if (game.mode === 'championship') {
+                if (humanRank === 1) {
+                    game.championship.wins++;
+                    message.textContent = `🎉 You won this round! Score: ${humanPlayer.score}`;
+                } else {
+                    game.championship.losses++;
+                    message.textContent = `${winner.name} won with ${winner.score} points. You placed ${humanRank}${getOrdinalSuffix(humanRank)}.`;
+                }
+                
+                document.getElementById('wins-text').textContent = `Wins: ${game.championship.wins} / 3`;
+                
+                setTimeout(() => {
+                    if (game.championship.wins >= 3) {
+                        showTrophyScreen();
+                    } else if (game.championship.losses >= 3) {
+                        message.textContent = `Championship Over. You didn't make it past Level ${game.championship.level}. 😔`;
+                        setTimeout(() => location.reload(), 3000);
+                    } else if (game.championship.level < 5) {
+                        message.textContent = 'Moving to next level...';
+                        setTimeout(() => {
+                            startChampionshipLevel(game.championship.level + 1);
+                        }, 2000);
+                    } else {
+                        showTrophyScreen();
+                    }
+                }, 3000);
+            } else {
+                if (game.numPlayers === 1) {
+                    message.textContent = `🏆 Game Over! Final Score: ${humanPlayer.score} points!`;
+                } else {
+                    message.textContent = `🏆 ${winner.name} wins with ${winner.score} points!`;
+                }
+            }
+        }
+
+        function showTrophyScreen() {
+            document.getElementById('game-area').style.display = 'none';
+            document.getElementById('scoreboard').style.display = 'none';
+            document.getElementById('championship-info').style.display = 'none';
+            document.getElementById('message').style.display = 'none';
+            
+            const trophyScreen = document.getElementById('trophy-screen');
+            trophyScreen.classList.remove('hidden');
+            
+            document.getElementById('final-stats').innerHTML = `
+                You conquered all 5 levels!<br>
+                Total Wins: ${game.championship.wins}<br>
+                You are the Bowling Champion!
+            `;
+        }
+
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            if (j === 1 && k !== 11) return 'st';
+            if (j === 2 && k !== 12) return 'nd';
+            if (j === 3 && k !== 13) return 'rd';
+            return 'th';
+        }
+    </script>
+</body>
+</html>
